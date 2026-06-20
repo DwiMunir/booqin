@@ -28,7 +28,7 @@ export function SiteFooter({ footer }: { footer: SiteSettings['footer'] }) {
         </div>
       </div>
       <div className="border-t border-white/[0.08]">
-        <div className="container-page py-[18px] text-[0.82rem] text-[#6E928B]">
+        <div className="container-page py-[18px] text-[0.82rem] text-[#8FB3AC]">
           {footer.copyright}
         </div>
       </div>
