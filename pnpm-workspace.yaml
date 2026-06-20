@@ -1,0 +1,6 @@
+allowBuilds:
+  esbuild: true
+  sharp: true
+# Dedupe vite ke versi yang dipakai vitest (hindari bentrok tipe vite7 vs vite8 di vitest.config.ts).
+overrides:
+  vite: 7.3.5

@@ -1,0 +1,15 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        # build-time (di-bake): set lewat shell/.env saat `docker compose build`
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        APP_ENV: ${APP_ENV:-production}
+    image: booqin
+    # runtime (secret): SANITY_*, CMS_WEBHOOK_SECRET, RESEND_*
+    env_file:
+      - .env.production
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

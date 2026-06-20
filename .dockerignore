@@ -1,0 +1,20 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env*.local
+.DS_Store
+npm-debug.log*
+.pnpm-debug.log*
+
+# tak perlu untuk build image
+_landingpage
+docs
+sanity-studio-schemas
+Dockerfile
+.dockerignore
+docker-compose.yml
+DEPLOY.md
+.vscode
+.idea
