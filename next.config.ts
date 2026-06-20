@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [{ protocol: 'https', hostname: 'cdn.sanity.io' }],
   },
-  allowedDevOrigins: ['unfelt-natasha-nonmythically.ngrok-free.dev'],
+  allowedDevOrigins: ['unfelt-natasha-nonmythically.ngrok-free.dev', 'booqin.moonir.dev'],
 }
 
 export default nextConfig

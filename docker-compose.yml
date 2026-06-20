@@ -11,5 +11,7 @@ services:
     env_file:
       - .env.production
     ports:
-      - "3000:3000"
+      # Hanya localhost — biar reverse proxy (Caddy/nginx) yang ekspos ke publik + TLS.
+      # Untuk akses langsung tanpa proxy, ganti ke "3000:3000".
+      - "127.0.0.1:3000:3000"
     restart: unless-stopped
