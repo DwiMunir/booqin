@@ -37,10 +37,18 @@ export async function joinWhitelist(_prev: JoinState, formData: FormData): Promi
   }
 
   try {
-    const { error } = await resend.contacts.create({ email, audienceId, unsubscribed: false })
+    const { error, data } = await resend.contacts.create({ email, audienceId, unsubscribed: false, })
     if (error) {
       return { status: 'error', message: 'Something went wrong on our end. Please try again.' }
     }
+
+    if (data.id) {
+      await resend.contacts.segments.add({
+        contactId: data.id,
+        segmentId: env.RESEND_WHITELIST_SEGMENT_ID!,
+      })
+    }
+
     return { status: 'success' }
   } catch {
     return { status: 'error', message: 'Something went wrong on our end. Please try again.' }
