@@ -26,7 +26,6 @@ const schema = z.object({
   // Fase 3 — Resend (server-only).
   RESEND_API_KEY: z.string().min(1).optional(),
   RESEND_AUDIENCE_ID: z.string().min(1).optional(),
-  RESEND_WHITELIST_SEGMENT_ID: z.string().min(1).optional(),
 })
 
 export const env = schema.parse({
@@ -38,5 +37,4 @@ export const env = schema.parse({
   CMS_WEBHOOK_SECRET: blankToUndefined(process.env.CMS_WEBHOOK_SECRET),
   RESEND_API_KEY: blankToUndefined(process.env.RESEND_API_KEY),
   RESEND_AUDIENCE_ID: blankToUndefined(process.env.RESEND_AUDIENCE_ID),
-  RESEND_WHITELIST_SEGMENT_ID: blankToUndefined(process.env.RESEND_WHITELIST_SEGMENT_ID),
 })
