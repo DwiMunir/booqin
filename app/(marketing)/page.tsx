@@ -4,12 +4,13 @@ import { getCachedPage } from '@/lib/cms/get-page'
 import { site } from '@/lib/seo/site'
 
 // Metadata per-halaman dari CMS (seo block) + canonical + toggle noindex.
-// PENTING: tanpa title CMS, JANGAN kirim `title` (biar title.default root dipakai) — mengirim
-// `undefined` justru menimpa default sehingga <title>/<meta description> hilang.
+// Home pakai title ABSOLUT (tanpa template `· Booqin`): judulnya sudah memuat brand, jadi
+// template root akan menggandakan "Booqin" + melewati 60 char. Selalu kirim string (jangan
+// undefined) agar <title>/<meta description> default tak ketimpa.
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCachedPage('home')
   return {
-    ...(page.seo?.title ? { title: page.seo.title } : {}),
+    title: { absolute: page.seo?.title ?? site.title },
     description: page.seo?.description ?? site.description,
     alternates: { canonical: '/' },
     robots: page.seo?.noindex ? { index: false, follow: false } : undefined,
