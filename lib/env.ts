@@ -26,6 +26,11 @@ const schema = z.object({
   // Fase 3 — Resend (server-only).
   RESEND_API_KEY: z.string().min(1).optional(),
   RESEND_AUDIENCE_ID: z.string().min(1).optional(),
+  RESEND_FROM: z.string().min(1).optional(), // mis. "Booqin <hello@domain>" (domain TERVERIFIKASI)
+
+  // Monitoring (opsional, credential-ready) — Sentry aktif saat SENTRY_DSN diisi.
+  SENTRY_DSN: z.string().min(1).optional(),
+  SENTRY_ENVIRONMENT: z.string().min(1).optional(),
 })
 
 export const env = schema.parse({
@@ -37,4 +42,7 @@ export const env = schema.parse({
   CMS_WEBHOOK_SECRET: blankToUndefined(process.env.CMS_WEBHOOK_SECRET),
   RESEND_API_KEY: blankToUndefined(process.env.RESEND_API_KEY),
   RESEND_AUDIENCE_ID: blankToUndefined(process.env.RESEND_AUDIENCE_ID),
+  RESEND_FROM: blankToUndefined(process.env.RESEND_FROM),
+  SENTRY_DSN: blankToUndefined(process.env.SENTRY_DSN),
+  SENTRY_ENVIRONMENT: blankToUndefined(process.env.SENTRY_ENVIRONMENT),
 })

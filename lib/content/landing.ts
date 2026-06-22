@@ -32,8 +32,8 @@ export const footer = {
   tagline:
     'The AI booking assistant for venue owners. List your space, fill more dates, do less work.',
   links: [
-    { label: 'Privacy', href: '#' },
-    { label: 'Contact', href: '#' },
+    { label: 'Privacy', href: '/privacy' },
+    { label: 'Contact', href: 'mailto:hello@booqin.moonir.dev' },
   ] satisfies NavLink[],
   cta: { label: 'Join the waitlist', href: '#waitlist' },
   copyright: '© 2026 Booqin. All rights reserved.',

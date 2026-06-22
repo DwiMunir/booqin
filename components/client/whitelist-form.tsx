@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useId, useState } from 'react'
 import { type JoinState, joinWhitelist } from '@/app/actions/join-whitelist'
 import { Icon } from '@/components/ui/icons'
 
@@ -9,14 +9,26 @@ const INITIAL: JoinState = { status: 'idle' }
 /**
  * Form waitlist -> Server Action Resend (Fase 3). useActionState: pending + success/error.
  * Anti-spam: honeypot tersembunyi + consent checkbox wajib. Validasi otoritatif di server.
+ * A11y: label terasosiasi, error role="alert" + aria-describedby, success role="status".
  */
 export function WhitelistForm({ variant, trust }: { variant: 'hero' | 'cta'; trust: string }) {
   const dark = variant === 'cta'
   const [state, formAction, isPending] = useActionState(joinWhitelist, INITIAL)
+  const emailId = useId()
+  const errId = useId()
+  // Waktu mount (klien) untuk time-check anti-spam. Date.now() di useEffect (post-hydration),
+  // BUKAN saat render — cacheComponents melarang Date.now() di prerender statis.
+  const [mountedAt, setMountedAt] = useState(0)
+  useEffect(() => {
+    setMountedAt(Date.now())
+  }, [])
 
   if (state.status === 'success') {
     return dark ? (
-      <div className="flex items-center justify-center gap-[14px] rounded-[14px] border border-white/[0.18] bg-white/[0.08] p-5">
+      <div
+        role="status"
+        className="flex items-center justify-center gap-[14px] rounded-[14px] border border-white/[0.18] bg-white/[0.08] p-5"
+      >
         <span className="flex size-10 flex-none items-center justify-center rounded-full bg-amber">
           <Icon name="check" className="size-[22px] text-[#1c1206]" strokeWidth={2.4} />
         </span>
@@ -28,7 +40,10 @@ export function WhitelistForm({ variant, trust }: { variant: 'hero' | 'cta'; tru
         </div>
       </div>
     ) : (
-      <div className="flex max-w-[480px] items-center gap-[14px] rounded-[14px] border border-[rgba(21,120,110,0.22)] bg-teal-tint px-5 py-[18px]">
+      <div
+        role="status"
+        className="flex max-w-[480px] items-center gap-[14px] rounded-[14px] border border-[rgba(21,120,110,0.22)] bg-teal-tint px-5 py-[18px]"
+      >
         <span className="flex size-[38px] flex-none items-center justify-center rounded-full bg-teal">
           <Icon name="check" className="size-5 text-white" strokeWidth={2.4} />
         </span>
@@ -50,7 +65,7 @@ export function WhitelistForm({ variant, trust }: { variant: 'hero' | 'cta'; tru
   return (
     <div className={dark ? 'mx-auto max-w-[480px]' : 'max-w-[480px]'}>
       <form action={formAction} noValidate>
-        {/* honeypot anti-spam (tak terlihat untuk manusia) */}
+        {/* honeypot anti-spam (disembunyikan dari mata & AT) */}
         <input
           type="text"
           name="company"
@@ -58,16 +73,22 @@ export function WhitelistForm({ variant, trust }: { variant: 'hero' | 'cta'; tru
           autoComplete="off"
           aria-hidden="true"
           defaultValue=""
-          className="absolute left-[-9999px] h-0 w-0 opacity-0"
+          className="sr-only"
         />
+        {/* time check: server membandingkan ke waktu submit (< 2 detik = bot). 0 sebelum hydrate → di-skip server. */}
+        <input type="hidden" name="ts" value={mountedAt} readOnly />
         <div className={`flex flex-wrap gap-2.5 ${dark ? 'justify-center' : ''}`}>
+          <label htmlFor={emailId} className="sr-only">
+            Email address
+          </label>
           <input
+            id={emailId}
             type="email"
             name="email"
             required
             placeholder="you@yourvenue.com"
-            aria-label="Email address"
             aria-invalid={hasError || undefined}
+            aria-describedby={hasError ? errId : undefined}
             className={inputClass}
           />
           <button
@@ -95,12 +116,26 @@ export function WhitelistForm({ variant, trust }: { variant: 'hero' | 'cta'; tru
             required
             className="mt-0.5 size-4 flex-none accent-[#15786E]"
           />
-          <span>I agree to receive early-access emails from Booqin.</span>
+          <span>
+            I agree to receive early-access emails from Booqin and to the{' '}
+            <a
+              href="/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="font-semibold underline underline-offset-2"
+            >
+              Privacy Policy
+            </a>
+            .
+          </span>
         </label>
       </form>
 
       {hasError ? (
         <p
+          id={errId}
+          role="alert"
           className={`font-semibold text-[0.88rem] ${dark ? 'mt-3 text-[#F6B6A8]' : 'mt-2.5 text-[#C0392B]'}`}
         >
           {state.message}

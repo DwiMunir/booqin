@@ -1,92 +1,97 @@
-# AGENTS.md — Konvensi Proyek Landing Page
+# AGENTS.md
 
-> File ini memandu coding agent menulis kode yang konsisten dengan keputusan riset. Baca seluruhnya sebelum mengerjakan task apa pun. Aturan di sini bersifat **wajib**, bukan saran.
+Spesifikasi konvensi untuk **agen pengodean apa pun** (Claude Code, Cursor, Copilot, Codex, dll) saat membangun **landing page perusahaan** dengan Next.js 16. File ini adalah sumber kebenaran konvensi; ikuti seluruhnya. Bersifat umum — ganti placeholder sesuai proyekmu. (Claude Code membaca `CLAUDE.md`, yang isinya selaras dengan file ini.)
 
-## Stack (jangan ubah versi tanpa alasan)
+## Konfigurasi proyek (isi dulu)
 
-- **Next.js 16.2.x**, App Router, Turbopack (default)
-- **Node.js ≥ 20.9** (runtime — bukan edge; Cache Components & `proxy.ts` butuh Node)
-- **React 19.2** + React Compiler
-- **TypeScript strict**, **Biome** (lint+format), **Vitest** (test)
-- **Sanity** sebagai headless CMS (Studio di **repo terpisah**)
-- **Resend** untuk form whitelist email
-- **Self-hosted** (lihat bagian Deploy)
-- `cacheComponents: true` di `next.config.ts`
+| Item | Nilai |
+|---|---|
+| Nama produk | `Booqin` |
+| Domain | `https://booqin.moonir.dev` → `NEXT_PUBLIC_SITE_URL` |
+| CMS | Sanity (default) — Studio di **repo terpisah** |
+| Email/form | Resend |
+| Deploy | self-host (Docker standalone) |
+| Bahasa | Indonesia, inggris |
+
+## Setup & perintah
+
+```bash
+pnpm dev · pnpm build · pnpm start
+pnpm lint        # Biome (next lint dihapus di Next 16)
+pnpm typecheck   # tsc --noEmit
+pnpm test        # Vitest + vitest-axe
+pnpm test:e2e    # Playwright
+```
+
+Setelah tiap perubahan berarti: `pnpm typecheck` lalu `pnpm build` harus lulus. Definition of done satu fase = lint, typecheck, test, build semuanya hijau.
+
+## Tech stack
+
+- Next.js 16.2.x · App Router · Turbopack · `output: 'standalone'` · `cacheComponents: true`
+- Node ≥ 20.9 (Node runtime, bukan edge) · React 19.2 + React Compiler
+- TypeScript strict · Biome · Vitest · Playwright
+- Sanity (Studio repo terpisah) · Resend + React Email · Tailwind v4
 
 ## Arsitektur — non-negotiable
 
-1. **Static-first.** Landing page di-prerender statis. JANGAN pakai `export const dynamic = 'force-dynamic'` di level halaman. SSR per-request hanya untuk bagian yang benar-benar personal.
-2. **Server Components default.** `'use client'` hanya di leaf terkecil yang butuh interaktivitas (client island). JANGAN taruh `'use client'` di `layout.tsx` atau `page.tsx`.
-3. **Konten dari CMS via Pola B:** fungsi `'use cache'` + `cacheLife('max')` + `cacheTag('page:<slug>')`, di-invalidasi webhook → `revalidateTag(tag, 'max')` (argumen kedua wajib).
-4. **Block-renderer:** halaman = array blok dari Sanity, dipetakan ke komponen via registry. Blok tak dikenal di-skip (tidak crash).
-5. **Query CMS hanya di `lib/cms/`**, bukan di dalam `components/`.
+1. **Static-first.** Prerender statis; JANGAN `force-dynamic` di landing page; bagian personal/live → dynamic hole via `<Suspense>`.
+2. **Server Components default.** `'use client'` hanya di leaf interaktif terkecil (penyebab utama INP buruk & bloat JS).
+3. **Konten CMS (Pola B):** `'use cache'` + `cacheLife('max')` + `cacheTag('page:<slug>')`; webhook → `revalidateTag(tag, 'max')`.
+4. **Block-renderer:** array blok CMS → registry; blok tak dikenal di-skip.
+5. **Satu sumber kebenaran:** query CMS hanya di `lib/cms/`; page & `generateMetadata` pakai query ber-cache yang sama.
+6. `fetch` default `no-store` di Next 16 — opt-in cache eksplisit.
 
 ## Struktur folder
 
 ```
-app/(marketing)/        layout (nav+footer), page.tsx, [...slug]/page.tsx
-app/api/revalidate/     webhook Sanity
-app/actions/            server actions (form)
-app/layout.tsx          root: html/body, font, metadata global, JSON-LD, <WebVitals/>
-app/sitemap.ts, app/robots.ts, app/not-found.tsx, app/error.tsx
-components/ui/           primitif (Button, Input)
-components/sections/     Hero, Features, Cta, WhitelistForm
-components/block-renderer.tsx
-lib/cms/                 client, queries (use cache), types
-lib/env.ts               validasi env (zod), secret TANPA prefix NEXT_PUBLIC_
-lib/fonts.ts, lib/seo/
+app/(marketing)/  · app/api/{revalidate,vitals,health}/ · app/actions/
+app/layout.tsx (root: font, metadata, JSON-LD, <WebVitals/>)
+app/{sitemap.ts,robots.ts,not-found.tsx,error.tsx,global-error.tsx}
+components/{ui,sections}/ · components/block-renderer.tsx
+lib/{cms,seo}/ · lib/{env,fonts,logger}.ts · instrumentation.ts · next.config.ts
 ```
 
-## Rendering & caching
+## Konvensi per area
 
-- Konten CMS: `'use cache'` + `cacheTag('page:<slug>')`. Tag spesifik per halaman — JANGAN tag global.
-- Bagian live/personal (mis. banner): bungkus `<Suspense>` → dynamic hole, jangan bikin seluruh halaman dinamis.
-- `fetch` di Next 16 default `no-store` — opt-in cache secara eksplisit.
+**Rendering & caching** — tag spesifik per halaman (jangan global); lima lapisan cache; CDN vs revalidation: Vercel purge otomatis, self-host + CDN generik → webhook harus purge CDN juga.
 
-## SEO (wajib ada)
+**SEO & AI search** — `metadataBase` + `title.template`; `viewport`/`themeColor` via export `viewport` terpisah; `generateMetadata` per halaman + canonical + toggle `noindex`; JSON-LD `Organization`+`WebSite` (`@graph`, escape `<` → `\u003c`); `sitemap.ts`+`robots.ts` dinamis & env-aware; tepat satu `<h1>`, HTML semantik; izinkan crawler AI answer; GEO: answer-first + `dateModified` akurat + `llms.txt` opsional.
 
-- `metadataBase` di root metadata; `title.template`; `description` default.
-- `viewport` & `themeColor` lewat **export `viewport` terpisah**, BUKAN di object `metadata`.
-- `generateMetadata` per halaman dari CMS (query ber-cache yang sama), dengan **canonical per-halaman** & toggle `noindex` dari CMS.
-- **Tepat satu `<h1>`** per halaman (hero); section lain `<h2>`. HTML semantik (`header/nav/main/section/footer`).
-- JSON-LD `Organization` + `WebSite` (global, `@graph`, escape `<`), `FAQPage` hanya jika FAQ tampil.
-- `sitemap.ts` & `robots.ts` dinamis dari CMS; `robots.ts` **environment-aware** (noindex non-produksi); `lastModified` dari `_updatedAt`.
+**Performance** (P75: LCP ≤ 2.5s · INP ≤ 200ms · CLS ≤ 0.1) — RUM `<WebVitals/>` → `/api/vitals`; LCP: hero `priority`; INP: kurangi client JS, `useTransition`; CLS: dimensi gambar + `size-adjust` font; Image: `next-sanity/image` + selalu `sizes` + `quality` eksplisit + blur LQIP; Font: `next/font` module-level (subset, variable, CSS var); Bundle: `next/dynamic` + `optimizePackageImports` + `reactCompiler`, budget < 200KB di CI.
 
-## Performa (wajib)
+**UX & Reliability** — Responsive: mobile-first + `@container` + `clamp()` + `dvh`, touch ≥ 44px, tes Safari iOS; A11y (WCAG 2.2 AA): semantik dulu/ARIA terakhir, keyboard penuh, `:focus-visible` ≥ 3:1, skip link, form berlabel + error `aria-live`, kontras 4.5:1, `vitest-axe`; States: Suspense + skeleton (`motion-safe:`), empty state mengarahkan, error boundary + retry, `prefers-reduced-motion`; Error pages: `not-found.tsx` (Server), `error.tsx` (`'use client'`, `reset`, `digest`), `global-error.tsx` (html/body).
 
-- Gambar: `next-sanity/image` (offload ke CDN Sanity) atau `next/image`. SELALU `sizes` di gambar responsif. Hero (LCP) pakai `priority`. `quality` eksplisit (Next 16 allowlist). `blurDataURL` dari LQIP Sanity.
-- Font: `next/font` di `lib/fonts.ts` (module-level), `subsets: ['latin']`, variable font, CSS variable. JANGAN `<link>`/`@import` Google Fonts.
-- Bundle: server-first; `next/dynamic` untuk widget berat; `experimental.optimizePackageImports` untuk icon/util libs; `reactCompiler: true`. Hindari barrel import.
-- RUM: komponen `<WebVitals/>` (`useReportWebVitals`) sebagai leaf `'use client'` kecil di root layout → kirim ke `/api/vitals`.
+**Security** — CSP **statis** via `next.config` (BUKAN nonce — merusak static); HSTS env-aware + `frame-ancestors 'none'` + `nosniff` + `Referrer-Policy` + `Permissions-Policy`; rollout report-only; jangan andalkan `proxy.ts` untuk auth (verifikasi di data boundary); Server Action = endpoint publik (zod + otorisasi); patch hygiene; secret server-only, bukan build-arg.
 
-## Form whitelist → Resend
+**Testing & CI/CD** — E2E Playwright: `getByRole`, web-first assertion, alur kritis + `@axe-core/playwright`, `webServer` build+start, no hard wait; async Server Component diuji lewat E2E; CI gate `lint → typecheck → test → build → E2E → Lighthouse` + caching; CD: Docker standalone (non-root) → push registry → deploy, tag per-SHA; env build-time (`NEXT_PUBLIC_*` build-arg) vs runtime (secret).
 
-- Server Action di `app/actions/`, validasi **zod**, anti-spam **honeypot** + checkbox **consent** wajib.
-- Tambah ke audience: `resend.contacts.create({ email, audienceId, unsubscribed: false })`.
-- API key Resend hanya di server (`RESEND_API_KEY`, tanpa `NEXT_PUBLIC_`).
-- Client form pakai `useActionState`; tampilkan state pending & sukses/gagal.
+**Monitoring** — `instrumentation.ts` (`register`, `onRequestError`) + Sentry + source map; uptime `/api/health` (cek dependency) + eksternal; log terstruktur (JSON + `correlationId`); analytics cookieless; alert pada threshold & tipe error baru.
 
-## Self-host (Deploy)
+**Forms** (jika ada) — Server Action (`'use server'`) + zod; Resend `contacts.create` ke Audience + konfirmasi React Email (properti `react`), domain terverifikasi (SPF/DKIM/DMARC); anti-spam berlapis: honeypot (silent drop, nama `website`) → time check (< 2s) → rate limit per-IP (Upstash) → Turnstile invisible (opsional, server-verify).
 
-- `output: 'standalone'` di `next.config.ts` untuk image Docker ramping.
-- Jalankan `next start` di Node (single instance = default filesystem cache, `revalidateTag` jalan).
-- Jika scaling multi-instance nanti: butuh `cacheHandler` kustom (mis. Redis) untuk shared cache.
-- Jika ada CDN generik (mis. Cloudflare) di depan: webhook revalidate harus **purge CDN juga** (revalidateTag saja tidak mem-purge CDN).
+**Privacy & i18n** — pisahkan cookie-consent vs form-consent; checkbox consent tidak pre-checked; data minimization; cookieless → kemungkinan tanpa banner; jika ada cookie non-esensial, blokir skrip sebelum consent; privacy policy (bukan nasihat hukum). i18n (tunda): `next-intl` + `[locale]` + `localePrefix: 'always'` + **`setRequestLocale`** + konten native (jangan auto-translate) + hreflang/`x-default`.
 
-## DX & gerbang
+## Environment variables
 
-- `tsconfig`: `strict`, `noUncheckedIndexedAccess`, alias `@/*`, `typedRoutes: true`.
-- Lint/format: Biome. Skrip: `lint`, `typecheck` (`tsc --noEmit`), `test` (vitest) — JANGAN `next lint` (sudah dihapus).
-- Test kontrak `block-renderer` (render blok dikenal + skip blok tak dikenal). JANGAN unit-test async Server Component (pakai E2E).
-- CI gate: `lint → typecheck → test → build` (`next build` tidak lagi nge-lint).
+```
+NEXT_PUBLIC_SITE_URL= · APP_ENV=production
+SANITY_PROJECT_ID= · SANITY_DATASET= · SANITY_API_TOKEN=   # token server-only
+CMS_WEBHOOK_SECRET= · RESEND_API_KEY= · RESEND_AUDIENCE_ID= # server-only
+# opsional: UPSTASH_REDIS_REST_URL/TOKEN, TURNSTILE_SECRET_KEY (+ NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+```
 
-## NEVER (anti-pattern yang harus dihindari)
+Validasi via `lib/env.ts` (zod, fail-fast saat build).
 
-- ❌ `'use client'` di page/layout; fetch konten utama di `useEffect`.
-- ❌ `force-dynamic` di landing page; cache tag global.
-- ❌ Secret/API key di Client Component atau `NEXT_PUBLIC_`.
-- ❌ Gambar tanpa `sizes`/dimensi; `priority` di banyak gambar; `<Image>` untuk SVG.
-- ❌ Font via `<link>`/`@import`; mendefinisikan font di dalam komponen.
-- ❌ Lebih dari satu `<h1>`; lupa canonical; JSON-LD tanpa escape `<`.
-- ❌ `revalidateTag` saja di belakang CDN generik (purge CDN juga).
-- ❌ Form tanpa validasi server / anti-spam / consent.
+## NEVER (anti-pattern utama)
+
+- ❌ `'use client'` di page/layout; fetch konten utama di `useEffect`; `force-dynamic`; cache tag global.
+- ❌ > satu `<h1>`; lupa canonical; JSON-LD tanpa escape `<`; static `robots.txt`.
+- ❌ Gambar tanpa `sizes`/dimensi; lazy-load gambar LCP; font via `<link>`/`@import`; `revalidateTag` saja di belakang CDN generik.
+- ❌ `<div onClick>`; hapus focus indicator; error form lewat warna saja; animasi tanpa `prefers-reduced-motion`.
+- ❌ Nonce CSP di static-first; `unsafe-eval` produksi; `proxy.ts` untuk auth; secret jadi build-arg; container root; deploy tanpa CI lulus.
+- ❌ API key di client; domain email tak terverifikasi; honeypot kembalikan error; consent pre-checked; analytics sebelum consent; auto-translate konten; lupa `setRequestLocale`.
+- ❌ Secret tanpa validasi env; rate limit in-memory di multi-instance; lupa `cacheComponents: true`.
+
+---
+
+*Selaras dengan `CLAUDE.md` (Claude Code) & `BUILD_PLAN.md` (urutan kerja). Rujuk enam dokumen riset detail untuk kode lengkap & alasan tiap keputusan.*

@@ -36,6 +36,12 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+
+  /* Fokus keyboard selalu terlihat (WCAG 2.2). outline (bukan box-shadow) agar tak ter-clip overflow:hidden. */
+  :focus-visible {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 2px;
+  }
 }
 
 /* ===== Keyframes (dipindah dari desain asli) ===== */
