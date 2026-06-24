@@ -135,11 +135,13 @@ instrumentation.ts · next.config.ts
 
 ```
 NEXT_PUBLIC_SITE_URL=
-APP_ENV=production            # untuk robots.ts env-aware
-SANITY_PROJECT_ID= · SANITY_DATASET= · SANITY_API_TOKEN=   # token server-only
+APP_ENV=production                                          # untuk robots.ts env-aware
+SANITY_PROJECT_ID= · SANITY_DATASET= · SANITY_API_TOKEN=    # token server-only
 CMS_WEBHOOK_SECRET=                                         # server-only
 RESEND_API_KEY= · RESEND_AUDIENCE_ID=                       # key server-only
-# opsional: UPSTASH_REDIS_REST_URL/TOKEN, TURNSTILE_SECRET_KEY (+ NEXT_PUBLIC_TURNSTILE_SITE_KEY)
+RESEND_FROM=                                                # key server-only
+SENTRY_DSN=                                                 # key server-only
+SENTRY_ENVIRONMENT=production                               # key server-only
 ```
 
 Validasi semua via `lib/env.ts` (zod, fail-fast saat build).

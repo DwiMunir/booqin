@@ -1,5 +1,5 @@
 'use client'
-
+import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
 
 // Pengaman terakhir bila root layout gagal. Menggantikan root layout → WAJIB <html>/<body>,
@@ -12,6 +12,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
+    Sentry.captureException(error)
     console.error(error)
   }, [error])
 
