@@ -17,6 +17,10 @@ const schema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default('http://localhost:3000'),
   APP_ENV: z.enum(['development', 'preview', 'production']).default('development'),
 
+  // WhatsApp reverse opt-in — nomor publik untuk link wa.me (click-to-chat).
+  // Bukan rahasia → NEXT_PUBLIC_. Kosong = tombol WhatsApp tidak dirender.
+  NEXT_PUBLIC_WHATSAPP_NUMBER: z.string().min(1).optional(),
+
   // Fase 2 — Sanity.
   SANITY_PROJECT_ID: z.string().min(1).optional(),
   SANITY_DATASET: z.string().min(1).optional(),
@@ -36,6 +40,7 @@ const schema = z.object({
 export const env = schema.parse({
   NEXT_PUBLIC_SITE_URL: blankToUndefined(process.env.NEXT_PUBLIC_SITE_URL),
   APP_ENV: blankToUndefined(process.env.APP_ENV),
+  NEXT_PUBLIC_WHATSAPP_NUMBER: blankToUndefined(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER),
   SANITY_PROJECT_ID: blankToUndefined(process.env.SANITY_PROJECT_ID),
   SANITY_DATASET: blankToUndefined(process.env.SANITY_DATASET),
   SANITY_API_TOKEN: blankToUndefined(process.env.SANITY_API_TOKEN),

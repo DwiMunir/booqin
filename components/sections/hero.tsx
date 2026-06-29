@@ -1,6 +1,7 @@
 // SANITY (Fase 2): pageBuilder block `hero`.
 import Image from 'next/image'
 import { WhitelistForm } from '@/components/client/whitelist-form'
+import { WhatsAppInline } from '@/components/sections/whatsapp-chat'
 import type { HeroBlock } from '@/lib/cms/types'
 import heroVenue from '../../public/hero-venue.jpg'
 
@@ -31,6 +32,7 @@ export function Hero({ block }: { block: HeroBlock }) {
             {block.subtitle}
           </p>
           <WhitelistForm variant="hero" trust={block.trust} />
+          <WhatsAppInline />
         </div>
 
         <div className="min-w-[300px] max-w-[560px] flex-1 basis-[420px]">

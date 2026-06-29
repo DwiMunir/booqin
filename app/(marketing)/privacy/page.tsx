@@ -38,6 +38,11 @@ export default function PrivacyPage() {
           waitlist.
         </li>
         <li>
+          <strong className="text-ink">WhatsApp number</strong> — only if you message us first on
+          WhatsApp. We receive your number from the chat you start; we never add you or message you
+          on WhatsApp unless you reach out to us first (reverse opt-in).
+        </li>
+        <li>
           <strong className="text-ink">Consent record</strong> — that you agreed to receive emails,
           with a timestamp.
         </li>
@@ -58,6 +63,10 @@ export default function PrivacyPage() {
       <h2 className={h2}>How we use it</h2>
       <ul className={ul}>
         <li>To notify you when early access opens and send updates you opted into.</li>
+        <li>
+          To reply to you on WhatsApp about the conversation you started — we do not send marketing
+          on WhatsApp to people who have not messaged us first.
+        </li>
         <li>To prevent spam and abuse of our forms.</li>
         <li>To monitor and improve site performance.</li>
       </ul>
@@ -65,7 +74,8 @@ export default function PrivacyPage() {
       <h2 className={h2}>Legal basis</h2>
       <p className={p}>
         We process your email on the basis of your <strong className="text-ink">consent</strong>,
-        given via the checkbox when you join the waitlist. You can withdraw that consent at any
+        given via the checkbox when you join the waitlist. For WhatsApp, your consent is the message
+        you send us first — we only reply to people who contact us. You can withdraw consent at any
         time.
       </p>
 
@@ -81,6 +91,18 @@ export default function PrivacyPage() {
           </a>{' '}
           — our email provider; stores your email in our audience and delivers our emails.
         </li>
+        <li>
+          <a
+            className={link}
+            href="https://www.whatsapp.com/legal/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            WhatsApp / Meta Platforms
+          </a>{' '}
+          — if you chat with us, messages are carried over WhatsApp and are also subject to their own
+          privacy policy.
+        </li>
       </ul>
       <p className={`mt-3 ${p}`}>
         Our site is self-hosted; page content is managed in a separate CMS that never receives your
@@ -95,8 +117,8 @@ export default function PrivacyPage() {
 
       <h2 className={h2}>Data retention</h2>
       <p className={p}>
-        We keep your email until you unsubscribe or ask us to delete it, or until the waitlist is no
-        longer needed.
+        We keep your email and any WhatsApp number until you unsubscribe or ask us to delete it, or
+        until the waitlist is no longer needed.
       </p>
 
       <h2 className={h2}>Your rights</h2>

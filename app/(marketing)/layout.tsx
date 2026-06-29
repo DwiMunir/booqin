@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { SiteFooter } from '@/components/sections/site-footer'
 import { SiteHeader } from '@/components/sections/site-header'
+import { WhatsAppChat } from '@/components/sections/whatsapp-chat'
 import { getSiteSettings } from '@/lib/cms/get-page'
 
 export default async function MarketingLayout({ children }: { children: ReactNode }) {
@@ -19,6 +20,7 @@ export default async function MarketingLayout({ children }: { children: ReactNod
         {children}
       </main>
       <SiteFooter footer={settings.footer} />
+      <WhatsAppChat />
     </>
   )
 }
